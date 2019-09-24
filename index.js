@@ -1,41 +1,52 @@
-// Express initializes app to be a function handler
-// that you can supply to an HTTP server.
+
 var app = require('express')();
 var http = require('http').Server(app);
-var port = process.env.PORT || 3000;
-
-// Initialize a new instance of socket.io by passing
-// the http (the HTTP server) object.
 var io = require('socket.io')(http);
+var port = process.env.PORT || 9000;
+var users= [];
+var connections = [];
 
-// We define a route handler / that gets called when
-// we hit our website home.
+
+
+
 app.get('/', function(req, res){
-    res.sendFile(__dirname + '/index.html');    // This code servers the index.html
+  res.sendFile(__dirname + '/index.html');
 });
 
-app.get('/index2', function(req, res){           // This is a trial and error part
-    res.sendFile(__dirname + '/index2.html');    // This code servers the index.html
+io.sockets.on('connection', function(socket){
+	connections.push(socket);
+
+	socket.on('disconnect', function(data){
+		users.splice(users.indexOf(socket.username), 1);
+		updateUsernames();
+		connections.splice(connections.indexOf(socket) , 1);
+		
+	});
+
+	//send message
+	socket.on('send message',function(data){
+		io.sockets.emit('new message' , {msg: data, user: socket.username});
+		console.log( socket.username);
+		
+	});
+
+	socket.on('typing', function(username) {
+		socket.broadcast.emit('typing', username);
+	})
+
+	// new user
+	socket.on('new user',function(data,callback){
+		callback(true);
+		socket.username = data;
+		users.push(socket.username);
+		updateUsernames();
+	});
+
+	function updateUsernames(){
+		io.sockets.emit('get users', users);
+	}
 });
- 
-io.on('connection', function(socket){           // Listen on the connection event when a user to access page
-    console.log('a user connected')                 // Logs on the terminal
-    io.emit('chat message', 'a user connected')     // Send to all client
-    socket.on('disconnect', function(){             // Listen on the disconnect event when a user disconnects
-        console.log("user disconnected")                // Logs on the terminal
-    })
 
-    socket.on('chat message', function(msg){    // Listens on the chat message event for incoming message
-        io.emit('chat message', msg);               // Sends to all client the message
-        console.log("chat message :" + msg)         // Logs the message to the terminal
-    });
-});
-
-
-http.listen(port, function(){                     // Make the http server listen on port 3000.
+http.listen(port, function(){
   console.log('listening on *:' + port);
 });
-
-// http.listen(process.env.PORT, function(){                     // Make the http server listen on port set for environment.
-//     console.log('listening on *:' + process.env.PORT);
-//   });

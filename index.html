@@ -1,39 +1,273 @@
-<!doctype html>
 <html>
-  <head>
-    <title>Socket.IO chat</title>
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font: 13px Helvetica, Arial; }
-      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
-      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages li { padding: 5px 10px; }
-      #messages li:nth-child(odd) { background: #eee; }
+
+<head>
+  <title>Socket.IO chat</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+  <style>
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+        color:black;
+        background-color: gray;
+        
+      }
+     
+
+      .chat-popup {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        right: 15px;
+        border: 1px solid #f1f1f1;
+        z-index: 1;
+      }
+
+      .form-container {
+         padding: 3px; 
+        background-color:gray;
+        height: 20px;
+        
+      }
+
+      li {
+        list-style-type: none;
+      }
+
+
+      .form-container .btn {
+        background-color:black;
+        color: white;
+        margin-left: 885px;
+        border: none;
+        cursor: pointer;
+        width: 10%;
+        margin-bottom:10px;
+        opacity: 0.8;
+        margin-top:-54px ;
+      }
+
+      .form-container .btn:hover, .open-button:hover {
+        opacity: 1;
+      }
+
+      header{
+        background-color: khaki;
+        height: 20%;
+        position: fixed;
+        width: 100%;
+        z-index: 1;
+
+      }
+      h1{
+        margin-top: 5%;
+        font-size: 30px;
+    
+      }
+      i{
+        color: black;
+
+      }
+      img{
+        height: 130px;
+        width : 130px;
+        margin-left: 600px;
+        margin-top: -80px;
+      }
+
+      #username{
+        width: 100%;
+        padding: 15px 32px;
+        margin-bottom:10px;
+      }
+      #userForm{
+        margin-left: 40%;
+        margin-right: 40%;
+        margin-top: 20%;
+        text-align: center;
+        background-color:gray;
+      }
+
+      #ok{
+        background-color:black;
+        color: white;
+        padding: 15px 32px;
+        text-align: center;
+        border: none;
+        cursor: pointer;
+        width: 100%;
+        margin-bottom:10px;
+        opacity: 0.8;
+      }
+      .well{
+        color:black;
+        background-color: gray;
+        margin-top: 5% ;
+        
+        
+      }
+      h3 {
+        color:black;
+        background-color: gray;
+        margin-top: 30% ; 
+      }
+       #divmessages{
+        margin-top: 8%;
+       }
+        
+
+      
+      .test{
+        margin-left: 300px;
+        min-height: 20px;
+        padding: 19px;
+        margin-bottom: 20px;
+        background-color: pink;
+        border: 1px solid #e3e3e3;
+        border-radius: 4px;
+        -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
+        box-shadow: inset 0 1px 1px rgba(0,0,0,.05);       
+      }
+      .test2{
+        margin-right: 300px;
+        min-height: 20px;
+        padding: 19px;
+        margin-bottom: 20px;
+        background-color: dodgerblue;
+        border: 1px solid #e3e3e3;
+        border-radius: 4px;
+        -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
+        box-shadow: inset 0 1px 1px rgba(0,0,0,.05);       
+      }
     </style>
-  </head>
-  <body>
-    <ul id="messages"></ul>
-    <form action="">
-      <input id="m" autocomplete="off" /><button>Sender</button>
-    </form>
-    <!-- load the socket.io-client, which exposes a io global, and then connect. -->
-    <script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+  <header>
+    <center>
+      <h1>
+        <i>MEET YOUR DESTINY</i>
+        <img src="https://images.vexels.com/media/users/3/129759/isolated/preview/e57821f1317893d1c2d8e184d4f9d595-chat-bubble-icon-by-vexels.png" />
+      </h1>
+    </center>
+  </header><br><br><br>
+  <div class="container">
+
+    <div id="userFormArea" class="row">
+      <div class="col-md-12">
+        <form id="userForm">
+          <div class="form-group">
+            <label>Enter a UserName:</label>
+            <input class="form-control" autocomplete= "off" id="username">
+            <br>
+            <input id="ok" type="submit" class="btn btn-primary" value="Save">
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-4">
+        <div class="well">
+          <h3>Online Users</h3>
+          <ul class="list-group" id="users"></ul>
+        </div>
+      </div>
+      <div class="col-md-8" id="divmessages">
+        <h1>Messages:</h1>
+      </div>
+    </div>
+
+    <div class="chat-popup" id="chat">
+      <div id="type"></div>
+      <form id="messageForm" class="form-container">
+        <input type="text" autocomplete= "off" class="form-control" id="message" placeholder="Type message here..." size="200">
+        <br>
+        <input type="submit" class="btn btn-primary" value="Send">
+      </form>
+    </div>
+
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
     <script>
       $(function () {
-        var socket = io();
-        $('form').submit(function(e){
-          e.preventDefault(); // prevents page reloading
-          socket.emit('chat message', $('#m').val());
-          $('#m').val('');
+        var socket = io.connect();
+        var messageForm = $('#messageForm');
+        var message = $('#message');
+        var userFormArea = $('#userFormArea');
+        var userForm = $('#userFormArea');
+        var users = $('#users');
+        var username = $('#username');
+        var messages = $('#divmessages');
+        var interval = 0;
+        var myname = "";
+
+
+        $(".well").hide();
+        $(messages).hide();
+
+        messageForm.submit(function (e) {
+          e.preventDefault();
+          socket.emit('send message', message.val());
+          message.val('');
           return false;
         });
-        socket.on('chat message', function(msg){
-          $('#messages').append($('<li>').text(msg));
+
+
+
+        socket.on('typing', function (data) {
+          $("#type").remove();
+          clearInterval(interval);
+          $('#divmessages').append('<div id = "type" >' + data + ' is typing..</div>');
+
+          interval = setInterval(function () {
+            $("#type").remove();
+          }, 2000);
+
+
+        })
+
+        socket.on('new message', function (data) {
+          $("#type").remove();
+          if (data.user == username) {
+            messages.append('<div class =" test" ><strong>  ' + data.user + '</strong>: ' + data.msg + '</div>')
+          } else {
+            messages.append('<div class = "test2" ><strong>' + data.user + '</strong>: ' + data.msg + '</div>')
+          }
+        });
+
+        userForm.submit(function (e) {
+          e.preventDefault();
+          myname = username.val();
+          socket.emit('new user', myname, function (data) {
+            if (data) {
+              userFormArea.hide();
+              $(".chat-popup").show();
+              $(".well").show();
+              $(messages).show();
+
+            }
+
+          });
+          username = username.val();
+
+        });
+
+        $("#message").keydown(function () {
+          socket.emit('typing', myname);
+        })
+
+        socket.on('get users', function (data) {
+          var html = "";
+          for (i = 0; i < data.length; i++) {
+            html += '<li class = "list-group-item">' + data[i] + ' is active' + '</li>';
+          }
+          users.html(html);
         });
       });
+
+
     </script>
-  </body>
+</body>
+
 </html>
