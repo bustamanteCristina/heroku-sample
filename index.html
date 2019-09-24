@@ -200,7 +200,7 @@
         var username = $('#username');
         var messages = $('#divmessages');
         var interval = 0;
-        var myname = "";
+        var myname = username.val();
 
 
         $(".well").hide();
@@ -238,7 +238,6 @@
 
         userForm.submit(function (e) {
           e.preventDefault();
-          myname = username.val();
           socket.emit('new user', myname, function (data) {
             if (data) {
               userFormArea.hide();
